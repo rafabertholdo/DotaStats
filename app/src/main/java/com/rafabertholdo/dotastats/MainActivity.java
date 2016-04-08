@@ -11,14 +11,29 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    public static Map<Integer,Hero> heroes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +50,77 @@ public class MainActivity extends AppCompatActivity {
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        AcessaHerois();
+        heroes = new HashMap<Integer, Hero>();
+
+        try {
+
+            // check sizeAssetManager am = getAssets();
+            InputStream inputStream = getAssets().open("npc_heroes.txt");
+            InputStreamReader isr = new InputStreamReader(inputStream);
+            BufferedReader br = new BufferedReader(isr);
+            String line = "";
+            Hero hero = null;
+            int chave = 0;
+            Pattern pattern = Pattern.compile(".*\\\"(.*)\\\".*\\\"(.*)\\\".*");
+
+            while ((line = br.readLine()) != null) {
+                String trimmedLine = line.trim();
+                if(trimmedLine.startsWith("//"))
+                    continue;
+
+                if(hero == null && trimmedLine.startsWith("\"npc_dota_hero_") ){
+                    hero = new Hero();
+                    hero.setName(trimmedLine.replace("\"",""));
+                    continue;
+                }
+
+                if(hero != null && trimmedLine.startsWith("{")){
+                    chave ++;
+                    continue;
+                }
+
+                if(hero != null && trimmedLine.startsWith("}")){
+                    if(chave == 1){
+                        heroes.put(hero.getHeroID(), hero);
+                        hero = null;
+                    }
+                    chave--;
+                    continue;
+                }
+
+                Matcher matcher = pattern.matcher(line);
+                if(hero != null && matcher.find()) {
+                    try {
+                        String fieldName = matcher.group(1);
+                        String fieldValue = matcher.group(2);
+                        Field field = Hero.class.getDeclaredField(fieldName.substring(0,1).toLowerCase() + fieldName.substring(1));
+                        field.setAccessible(true);
+                        if(field.getType().equals(int.class)){
+                            field.set(hero, Integer.parseInt(fieldValue));
+                        }else if(Collection.class.isAssignableFrom(field.getType())) {
+                            ParameterizedType listType = (ParameterizedType) field.getGenericType();
+                            Class<?> listClass = (Class<?>) listType.getActualTypeArguments()[0];
+
+                            if(listClass.equals(Integer.class)){
+                                List<Integer> intList = new ArrayList<Integer>();
+                                for(String s : fieldValue.split(",")) intList.add(Integer.valueOf(s));
+                                field.set(hero, intList);
+                            }else {
+                                field.set(hero, Arrays.asList(fieldValue.split(",")));
+                            }
+                        }else{
+                            field.set(hero, fieldValue);
+                        }
+                    } catch (Exception e) {
+
+                    }
+                }
+            }
+
+            AcessaHerois();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void AcessaHerois(){
@@ -50,18 +135,34 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject reader = new JSONObject(asyncresult);
                     //Get the instance of JSONArray that contains JSONObjects
                     JSONArray jsonArray = reader.getJSONObject("result").optJSONArray("heroes");
-                    List<Hero> heroes = new ArrayList<Hero>();
+
                     //Iterate the jsonArray and print the info of JSONObjects
                     for(int i=0; i < jsonArray.length(); i++) {
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        Hero hero = new Hero();
-                        hero.setName(jsonObject.getString("name"));
-                        hero.setId(jsonObject.getInt("id"));
-                        hero.setLocalizedName(jsonObject.getString("localized_name"));
-                        heroes.add(hero);
+                        Hero hero = MainActivity.heroes.get(jsonObject.getInt("id"));
+                        if(hero != null) {
+                            if (hero.getName().equals(jsonObject.getString("name"))) {
+                                hero.setLocalizedName(jsonObject.getString("localized_name"));
+                            }
+                        }
                     }
+
                     // specify an adapter (see also next example)
-                    mAdapter = new HeroAdapter(heroes, new HeroAdapter.OnListFragmentInteractionListener() {
+                    List heroList = new ArrayList(heroes.values());
+                    Collections.sort(heroList, new Comparator<Hero>() {
+                        @Override public int compare(final Hero o1, final Hero o2) {
+                            if(o1.getLocalizedName() == null){
+                                o1.setLocalizedName("");
+                            }
+                            if(o2.getLocalizedName() == null){
+                                o2.setLocalizedName("");
+                            }
+                            return o1.getLocalizedName().compareTo(o2.getLocalizedName());
+                        }
+                    });
+
+
+                    mAdapter = new HeroAdapter(heroList, new HeroAdapter.OnListFragmentInteractionListener() {
                         @Override
                         public void onListFragmentInteraction(Hero item) {
                             Intent push = new Intent(getApplicationContext(), HeroActivity.class);
