@@ -1,17 +1,22 @@
 package com.rafabertholdo.dotastats;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import android.support.v7.widget.RecyclerView;
+
+import com.squareup.picasso.Picasso;
+
 import java.util.List;
 
 /**
  * Created by rafaelgb on 07/04/2016.
  */
-public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHolder> {
+public class HeroAdapter extends RecyclerView.Adapter<HeroAdapter.ViewHolder> {
 
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
@@ -21,7 +26,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
     private final List<Hero> mValues;
     private final OnListFragmentInteractionListener mListener;
 
-    public ContactAdapter(List<Hero> items, OnListFragmentInteractionListener listener) {
+    public HeroAdapter(List<Hero> items, OnListFragmentInteractionListener listener) {
         mValues = items;
         mListener = listener;
     }
@@ -36,7 +41,10 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.mNameView.setText(mValues.get(position).getName());
+
+        Context context = holder.mImageView.getContext();
+        String heroName = mValues.get(position).getName().replace("npc_dota_hero_","");
+        Picasso.with(context).load(String.format("http://cdn.dota2.com/apps/dota2/images/heroes/%s_sb.png",heroName)).into(holder.mImageView);
         holder.mLocalizedNameView.setText(mValues.get(position).getLocalizedName());
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
@@ -59,7 +67,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
-        public final TextView mNameView;
+        public final ImageView mImageView;
         public final TextView mLocalizedNameView;
         public Hero mItem;
 
@@ -67,7 +75,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
             super(view);
             view.setClickable(true);
             mView = view;
-            mNameView = (TextView) view.findViewById(R.id.Name);
+            mImageView = (ImageView) view.findViewById(R.id.HeroImage);
             mLocalizedNameView = (TextView) view.findViewById(R.id.LocalizedName);
         }
 

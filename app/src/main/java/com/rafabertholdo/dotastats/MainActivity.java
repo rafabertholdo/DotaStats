@@ -1,5 +1,6 @@
 package com.rafabertholdo.dotastats;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -60,10 +61,12 @@ public class MainActivity extends AppCompatActivity {
                         heroes.add(hero);
                     }
                     // specify an adapter (see also next example)
-                    mAdapter = new ContactAdapter(heroes, new ContactAdapter.OnListFragmentInteractionListener() {
+                    mAdapter = new HeroAdapter(heroes, new HeroAdapter.OnListFragmentInteractionListener() {
                         @Override
                         public void onListFragmentInteraction(Hero item) {
-
+                            Intent push = new Intent(getApplicationContext(), HeroActivity.class);
+                            push.putExtra("hero", item);
+                            startActivity(push);
                         }
                     });
                     mRecyclerView.setAdapter(mAdapter);

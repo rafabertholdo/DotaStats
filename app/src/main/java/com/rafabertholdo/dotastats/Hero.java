@@ -1,9 +1,11 @@
 package com.rafabertholdo.dotastats;
 
+import java.io.Serializable;
+
 /**
  * Created by rafaelgb on 07/04/2016.
  */
-public class Hero {
+public class Hero implements Serializable {
 
     private String name;
     private int id;
