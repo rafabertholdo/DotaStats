@@ -44,7 +44,9 @@ public class HeroAdapter extends RecyclerView.Adapter<HeroAdapter.ViewHolder> {
 
         Context context = holder.mImageView.getContext();
         String heroName = mValues.get(position).getName().replace("npc_dota_hero_","");
-        Picasso.with(context).load(String.format("http://cdn.dota2.com/apps/dota2/images/heroes/%s_sb.png",heroName)).into(holder.mImageView);
+        //Picasso.with(context).load(String.format("http://cdn.dota2.com/apps/dota2/images/heroes/%s_sb.png",heroName)).into(holder.mImageView);
+        Picasso.with(context).load(String.format("http://cdn.dota2.com/apps/dota2/images/heroes/%s_vert.jpg",heroName)).into(holder.mImageView);
+
         holder.mLocalizedNameView.setText(mValues.get(position).getLocalizedName());
 
         holder.mView.setOnClickListener(new View.OnClickListener() {

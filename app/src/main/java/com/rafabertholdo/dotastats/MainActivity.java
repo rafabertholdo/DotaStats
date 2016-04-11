@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,11 +30,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import it.moondroid.coverflow.components.ui.containers.FeatureCoverFlow;
+import it.moondroid.coverflow.components.ui.containers.contentbands.BasicContentBand;
+
 public class MainActivity extends AppCompatActivity {
 
-    private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+//    private RecyclerView mRecyclerView;
+    private BasicContentBand.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    private FeatureCoverFlow mCoverFlow;
     public static Map<Integer,Hero> heroes;
 
     @Override
@@ -40,15 +46,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+        //mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+        mCoverFlow = (FeatureCoverFlow) findViewById(R.id.coverflow);
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
-        mRecyclerView.setHasFixedSize(true);
+        //mRecyclerView.setHasFixedSize(true);
 
         // use a linear layout manager
         mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
+        //mRecyclerView.setLayoutManager(mLayoutManager);
 
         heroes = new HashMap<Integer, Hero>();
 
@@ -62,13 +69,17 @@ public class MainActivity extends AppCompatActivity {
             Hero hero = null;
             int chave = 0;
             Pattern pattern = Pattern.compile(".*\\\"(.*)\\\".*\\\"(.*)\\\".*");
+            Pattern heroPattern = Pattern.compile(".*\\\"(.*)\\\".*");
 
             while ((line = br.readLine()) != null) {
                 String trimmedLine = line.trim();
                 if(trimmedLine.startsWith("//"))
                     continue;
 
-                if(hero == null && trimmedLine.startsWith("\"npc_dota_hero_") ){
+                Matcher heroMatcher = pattern.matcher(line);
+                if(hero == null && heroMatcher.find() &&
+                        heroMatcher.group(1).startsWith("npc_dota_hero_") &&
+                        !heroMatcher.group(1).equals("npc_dota_hero_base")){
                     hero = new Hero();
                     hero.setName(trimmedLine.replace("\"",""));
                     continue;
@@ -170,7 +181,30 @@ public class MainActivity extends AppCompatActivity {
                             startActivity(push);
                         }
                     });
-                    mRecyclerView.setAdapter(mAdapter);
+                    //mRecyclerView.setAdapter(mAdapter);
+
+
+                    mCoverFlow.setAdapter(mAdapter);
+
+                    mCoverFlow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            //TODO CoverFlow item clicked
+                        }
+                    });
+
+                    mCoverFlow.setOnScrollPositionListener(new FeatureCoverFlow.OnScrollPositionListener() {
+                        @Override
+                        public void onScrolledToPosition(int position) {
+                            //TODO CoverFlow stopped to position
+                        }
+
+                        @Override
+                        public void onScrolling() {
+                            //TODO CoverFlow began scrolling
+                        }
+                    });
+
                 }catch (JSONException e){
                     Log.e("Json", e.getMessage());
                 }
