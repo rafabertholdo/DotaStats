@@ -1,8 +1,6 @@
 package com.rafabertholdo.dotastats;
 
 import android.content.Context;
-import android.widget.Adapter;
-import android.widget.AdapterView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,9 +11,6 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import it.moondroid.coverflow.components.ui.containers.contentbands.BasicContentBand;
 
 /**
  * Created by rafaelgb on 07/04/2016.
@@ -73,7 +68,7 @@ public class HeroCoverFlowAdapter extends BaseAdapter {
         //Picasso.with(context).load(String.format("http://cdn.dota2.com/apps/dota2/images/heroes/%s_sb.png",heroName)).into(holder.mImageView);
         Picasso.with(context).load(String.format("http://cdn.dota2.com/apps/dota2/images/heroes/%s_vert.jpg",heroName)).into(holder.image);
 
-        holder.text.setText(mValues.get(position).getLocalizedName());
+        holder.text.setText(mData.get(position).getName());
 
         return rowView;
     }

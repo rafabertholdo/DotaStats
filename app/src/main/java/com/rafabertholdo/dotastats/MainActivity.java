@@ -6,8 +6,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
+import android.widget.TextSwitcher;
+import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,20 +38,36 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import it.moondroid.coverflow.components.ui.containers.FeatureCoverFlow;
-import it.moondroid.coverflow.components.ui.containers.contentbands.BasicContentBand;
 
 public class MainActivity extends AppCompatActivity {
 
 //    private RecyclerView mRecyclerView;
-    private BasicContentBand.Adapter mAdapter;
+    private HeroCoverFlowAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private FeatureCoverFlow mCoverFlow;
     public static Map<Integer,Hero> heroes;
+    private TextSwitcher mTitle;
+    private ArrayList<Hero> heroList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mTitle = (TextSwitcher) findViewById(R.id.title);
+
+        mTitle.setFactory(new ViewSwitcher.ViewFactory() {
+            @Override
+            public View makeView() {
+                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+                TextView textView = (TextView) inflater.inflate(R.layout.item_title, null);
+                return textView;
+            }
+        });
+        Animation in = AnimationUtils.loadAnimation(this, R.anim.slide_in_top);
+        Animation out = AnimationUtils.loadAnimation(this, R.anim.slide_out_bottom);
+        mTitle.setInAnimation(in);
+        mTitle.setOutAnimation(out);
 
         //mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         mCoverFlow = (FeatureCoverFlow) findViewById(R.id.coverflow);
@@ -76,12 +99,12 @@ public class MainActivity extends AppCompatActivity {
                 if(trimmedLine.startsWith("//"))
                     continue;
 
-                Matcher heroMatcher = pattern.matcher(line);
+                Matcher heroMatcher = heroPattern.matcher(line);
                 if(hero == null && heroMatcher.find() &&
                         heroMatcher.group(1).startsWith("npc_dota_hero_") &&
                         !heroMatcher.group(1).equals("npc_dota_hero_base")){
                     hero = new Hero();
-                    hero.setName(trimmedLine.replace("\"",""));
+                    hero.setName(heroMatcher.group(1));
                     continue;
                 }
 
@@ -127,7 +150,50 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
+            mAdapter = new HeroCoverFlowAdapter(this);
+            heroList = new ArrayList<Hero>(heroes.values());
+            // specify an adapter (see also next example)
+            Collections.sort(heroList, new Comparator<Hero>() {
+                @Override public int compare(final Hero o1, final Hero o2) {
+                    if(o1.getLocalizedName() == null){
+                        o1.setLocalizedName("");
+                    }
+                    if(o2.getLocalizedName() == null){
+                        o2.setLocalizedName("");
+                    }
+                    return o1.getLocalizedName().compareTo(o2.getLocalizedName());
+                }
+            });
 
+            mAdapter.setData(heroList);
+            mCoverFlow.setAdapter(mAdapter);
+            mCoverFlow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                    Intent push = new Intent(getApplicationContext(), HeroActivity.class);
+                    push.putExtra("hero", heroList.get(position));
+                    startActivity(push);
+
+                    /*
+                    Toast.makeText(MainActivity.this,
+                            heroList.get(position).getLocalizedName(),
+                            Toast.LENGTH_SHORT).show();
+                     */
+                }
+            });
+
+            mCoverFlow.setOnScrollPositionListener(new FeatureCoverFlow.OnScrollPositionListener() {
+                @Override
+                public void onScrolledToPosition(int position) {
+                    mTitle.setText(heroList.get(position).getName());
+                }
+
+                @Override
+                public void onScrolling() {
+                    mTitle.setText("");
+                }
+            });
             AcessaHerois();
         } catch (IOException e) {
             e.printStackTrace();
@@ -137,7 +203,6 @@ public class MainActivity extends AppCompatActivity {
     public void AcessaHerois(){
 
         RequestTask task = new RequestTask();
-        task.execute("https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/?key=D694213C6F6E32058C2E37326AAF31FC&language=pt_br");
         task.delegate = new IApiAccessResponse() {
             @Override
             public void postResult(String asyncresult) {
@@ -158,21 +223,10 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                    // specify an adapter (see also next example)
-                    List heroList = new ArrayList(heroes.values());
-                    Collections.sort(heroList, new Comparator<Hero>() {
-                        @Override public int compare(final Hero o1, final Hero o2) {
-                            if(o1.getLocalizedName() == null){
-                                o1.setLocalizedName("");
-                            }
-                            if(o2.getLocalizedName() == null){
-                                o2.setLocalizedName("");
-                            }
-                            return o1.getLocalizedName().compareTo(o2.getLocalizedName());
-                        }
-                    });
 
 
+
+                    /*
                     mAdapter = new HeroAdapter(heroList, new HeroAdapter.OnListFragmentInteractionListener() {
                         @Override
                         public void onListFragmentInteraction(Hero item) {
@@ -181,34 +235,37 @@ public class MainActivity extends AppCompatActivity {
                             startActivity(push);
                         }
                     });
+                    */
                     //mRecyclerView.setAdapter(mAdapter);
-
-
-                    mCoverFlow.setAdapter(mAdapter);
-
-                    mCoverFlow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            //TODO CoverFlow item clicked
-                        }
-                    });
-
-                    mCoverFlow.setOnScrollPositionListener(new FeatureCoverFlow.OnScrollPositionListener() {
-                        @Override
-                        public void onScrolledToPosition(int position) {
-                            //TODO CoverFlow stopped to position
-                        }
-
-                        @Override
-                        public void onScrolling() {
-                            //TODO CoverFlow began scrolling
-                        }
-                    });
 
                 }catch (JSONException e){
                     Log.e("Json", e.getMessage());
                 }
             }
         };
+        task.execute("https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/?key=D694213C6F6E32058C2E37326AAF31FC&language=pt_br");
+    }
+/*
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_coverflow_activity, menu);
+        return true;
+    }
+*/
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        /*
+        if (id == R.id.action_settings) {
+            return true;
+        }
+*/
+        return super.onOptionsItemSelected(item);
     }
 }
