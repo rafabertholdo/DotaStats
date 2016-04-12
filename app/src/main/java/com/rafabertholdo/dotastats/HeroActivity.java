@@ -10,6 +10,9 @@ import android.widget.LinearLayout;
 
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class HeroActivity extends AppCompatActivity {
 
     private ImageView _imgHeroLarge;
@@ -31,6 +34,15 @@ public class HeroActivity extends AppCompatActivity {
 
         for(int i=0;i<hero.getAbilities().size();i++){
             String ability = hero.getAbilities().get(i);
+            String abilityName = "";
+            String abilityDesc = "";
+            try {
+                JSONObject abilityMap = (JSONObject) MainActivity.abilityMap.get(ability);
+                abilityName = abilityMap.getString("dname");
+                abilityDesc = abilityMap.getString("desc");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             //ImageView Setup
             ImageView imageView = new ImageView(this);
             //setting image resource

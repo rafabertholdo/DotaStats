@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView.LayoutManager mLayoutManager;
     private SearchView mSearchView;
     private SharedPreferences mPrefs;
+    public static JSONObject abilityMap;
+
 
     public static Map<Integer, Hero> heroes;
     private ArrayList<Hero> heroList;
@@ -75,8 +77,19 @@ public class MainActivity extends AppCompatActivity {
         String json = mPrefs.getString("heroes", "");
         if(json.equals("")){
         */
-            loadHeores();
-            AcessaHerois();
+
+
+        /*
+        try {
+            String jsonAbilities = LoadData("abilitydata.json");
+            JSONObject abiltyReader = new JSONObject(jsonAbilities);
+            abilityMap = abiltyReader.getJSONObject("abilitydata");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }*/
+        System.gc();
+        loadHeores();
+        AcessaHerois();
         /*
         }else
         {
@@ -84,6 +97,47 @@ public class MainActivity extends AppCompatActivity {
             setAdapter();
         }
         */
+    }
+
+    public String LoadData(String inFile) {
+        StringBuilder tContents = new StringBuilder();
+        /*
+        try {
+            InputStream stream = getAssets().open(inFile);
+
+            int size = stream.available();
+            byte[] buffer = new byte[size];
+            stream.read(buffer);
+            stream.close();
+            tContents = new String(buffer);
+        } catch (IOException e) {
+            // Handle exceptions here
+        }
+        */
+
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(
+                    new InputStreamReader(getAssets().open(inFile)));
+
+            // do reading, usually loop until end of file reading
+            String mLine;
+            while ((mLine = reader.readLine()) != null) {
+                tContents.append(mLine);
+            }
+        } catch (IOException e) {
+            //log the exception
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    //log the exception
+                }
+            }
+        }
+        return tContents.toString();
+
     }
 
     private void loadHeores() {
