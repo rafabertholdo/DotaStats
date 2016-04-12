@@ -1,6 +1,7 @@
 package com.rafabertholdo.dotastats;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -21,9 +22,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -35,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private HeroAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private SearchView mSearchView;
+    private SharedPreferences mPrefs;
 
     public static Map<Integer, Hero> heroes;
     private ArrayList<Hero> heroList;
@@ -68,12 +67,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        loadHeores();
-        AcessaHerois();
+        //Creating a shared preference
+        /*
+        mPrefs = getPreferences(MODE_PRIVATE);
+        heroes = new HashMap<Integer, Hero>();
+        Gson gson = new Gson();
+        String json = mPrefs.getString("heroes", "");
+        if(json.equals("")){
+        */
+            loadHeores();
+            AcessaHerois();
+        /*
+        }else
+        {
+            heroes = gson.fromJson(json, heroes.getClass());
+            setAdapter();
+        }
+        */
     }
 
     private void loadHeores() {
-        heroes = new HashMap<Integer, Hero>();
+
 
         try {
 
@@ -120,24 +134,32 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         String fieldName = matcher.group(1);
                         String fieldValue = matcher.group(2);
-                        Field field = Hero.class.getDeclaredField(fieldName.substring(0, 1).toLowerCase() + fieldName.substring(1));
-                        field.setAccessible(true);
-                        if (field.getType().equals(int.class)) {
-                            field.set(hero, Integer.parseInt(fieldValue));
-                        } else if (Collection.class.isAssignableFrom(field.getType())) {
-                            ParameterizedType listType = (ParameterizedType) field.getGenericType();
-                            Class<?> listClass = (Class<?>) listType.getActualTypeArguments()[0];
-
-                            if (listClass.equals(Integer.class)) {
-                                List<Integer> intList = new ArrayList<Integer>();
-                                for (String s : fieldValue.split(","))
-                                    intList.add(Integer.valueOf(s));
-                                field.set(hero, intList);
-                            } else {
-                                field.set(hero, Arrays.asList(fieldValue.split(",")));
+                        if(fieldName.startsWith("Ability"))
+                        {
+                            char c = fieldName.charAt(7);
+                            if ((c >= '0' && c <= '9') && (!fieldValue.equals("attribute_bonus"))) {
+                                hero.getAbilities().add(fieldValue);
                             }
-                        } else {
-                            field.set(hero, fieldValue);
+                        }else {
+                            Field field = Hero.class.getDeclaredField(fieldName.substring(0, 1).toLowerCase() + fieldName.substring(1));
+                            field.setAccessible(true);
+                            if (field.getType().equals(int.class)) {
+                                field.set(hero, Integer.parseInt(fieldValue));
+                            } else if (Collection.class.isAssignableFrom(field.getType())) {
+                                ParameterizedType listType = (ParameterizedType) field.getGenericType();
+                                Class<?> listClass = (Class<?>) listType.getActualTypeArguments()[0];
+
+                                if (listClass.equals(Integer.class)) {
+                                    List<Integer> intList = new ArrayList<Integer>();
+                                    for (String s : fieldValue.split(","))
+                                        intList.add(Integer.valueOf(s));
+                                    field.set(hero, intList);
+                                } else {
+                                    field.set(hero, Arrays.asList(fieldValue.split(",")));
+                                }
+                            } else {
+                                field.set(hero, fieldValue);
+                            }
                         }
                     } catch (Exception e) {
 
@@ -149,6 +171,33 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setAdapter(){
+        heroList = new ArrayList<Hero>(heroes.values());
+        // specify an adapter (see also next example)
+        /*
+        Collections.sort(heroList, new Comparator<Hero>() {
+            @Override public int compare(final Hero o1, final Hero o2) {
+                if(o1.getLocalizedName() == null){
+                    o1.setLocalizedName("");
+                }
+                if(o2.getLocalizedName() == null){
+                    o2.setLocalizedName("");
+                }
+                return o1.getLocalizedName().compareTo(o2.getLocalizedName());
+            }
+        });
+*/
+        // specify an adapter (see also next example)
+        mAdapter = new HeroAdapter(heroList, new HeroAdapter.OnListFragmentInteractionListener() {
+            @Override
+            public void onListFragmentInteraction(Hero item) {
+                Intent push = new Intent(getApplicationContext(), HeroActivity.class);
+                push.putExtra("hero", item);
+                startActivity(push);
+            }
+        });
+        mRecyclerView.setAdapter(mAdapter);
+    }
     public void AcessaHerois(){
 
         RequestTask task = new RequestTask();
@@ -170,30 +219,15 @@ public class MainActivity extends AppCompatActivity {
                             hero.setLocalizedName(jsonObject.getString("localized_name"));
                         }
                     }
-                    heroList = new ArrayList<Hero>(heroes.values());
-                    // specify an adapter (see also next example)
-                    Collections.sort(heroList, new Comparator<Hero>() {
-                        @Override public int compare(final Hero o1, final Hero o2) {
-                            if(o1.getLocalizedName() == null){
-                                o1.setLocalizedName("");
-                            }
-                            if(o2.getLocalizedName() == null){
-                                o2.setLocalizedName("");
-                            }
-                            return o1.getLocalizedName().compareTo(o2.getLocalizedName());
-                        }
-                    });
 
-                    // specify an adapter (see also next example)
-                    mAdapter = new HeroAdapter(heroList, new HeroAdapter.OnListFragmentInteractionListener() {
-                        @Override
-                        public void onListFragmentInteraction(Hero item) {
-                            Intent push = new Intent(getApplicationContext(), HeroActivity.class);
-                            push.putExtra("hero", item);
-                            startActivity(push);
-                        }
-                    });
-                    mRecyclerView.setAdapter(mAdapter);
+                    /*
+                    SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                    Gson gson = new Gson();
+                    String json = gson.toJson(heroes);
+                    prefsEditor.putString("heroes", json);
+                    prefsEditor.commit();
+                    */
+                    setAdapter();
                 }catch (JSONException e){
                     Log.e("Json", e.getMessage());
                 }

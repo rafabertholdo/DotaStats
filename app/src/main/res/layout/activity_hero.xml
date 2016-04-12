@@ -12,4 +12,11 @@
         android:id="@+id/imgHeroLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+    <LinearLayout
+        android:id="@+id/abilitiesLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imgHeroLarge"
+        android:paddingTop="10dp"
+        android:orientation="horizontal"></LinearLayout>
 </RelativeLayout>
