@@ -22,6 +22,9 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -78,16 +81,15 @@ public class MainActivity extends AppCompatActivity {
         if(json.equals("")){
         */
 
+        heroes = new HashMap<Integer,Hero>();
 
-        /*
         try {
             String jsonAbilities = LoadData("abilitydata.json");
             JSONObject abiltyReader = new JSONObject(jsonAbilities);
             abilityMap = abiltyReader.getJSONObject("abilitydata");
         } catch (JSONException e) {
             e.printStackTrace();
-        }*/
-        System.gc();
+        }
         loadHeores();
         AcessaHerois();
         /*
@@ -197,7 +199,9 @@ public class MainActivity extends AppCompatActivity {
                         }else {
                             Field field = Hero.class.getDeclaredField(fieldName.substring(0, 1).toLowerCase() + fieldName.substring(1));
                             field.setAccessible(true);
-                            if (field.getType().equals(int.class)) {
+                            if (field.getType().equals(float.class)) {
+                                field.set(hero, Float.parseFloat(fieldValue));
+                            } else if (field.getType().equals(int.class)) {
                                 field.set(hero, Integer.parseInt(fieldValue));
                             } else if (Collection.class.isAssignableFrom(field.getType())) {
                                 ParameterizedType listType = (ParameterizedType) field.getGenericType();
@@ -228,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
     private void setAdapter(){
         heroList = new ArrayList<Hero>(heroes.values());
         // specify an adapter (see also next example)
-        /*
+
         Collections.sort(heroList, new Comparator<Hero>() {
             @Override public int compare(final Hero o1, final Hero o2) {
                 if(o1.getLocalizedName() == null){
@@ -240,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
                 return o1.getLocalizedName().compareTo(o2.getLocalizedName());
             }
         });
-*/
+
         // specify an adapter (see also next example)
         mAdapter = new HeroAdapter(heroList, new HeroAdapter.OnListFragmentInteractionListener() {
             @Override

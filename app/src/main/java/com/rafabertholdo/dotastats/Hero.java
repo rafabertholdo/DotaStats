@@ -17,6 +17,16 @@ public class Hero implements Serializable {
     private String team;
     private List<String> abilities;
     private String attributePrimary;
+    private String attackCapabilities;
+
+    private int attributeBaseStrength;
+    private float attributeStrengthGain;
+
+    private int attributeBaseIntelligence;
+    private float attributeIntelligenceGain;
+
+    private int attributeBaseAgility;
+    private float attributeAgilityGain;
 
     public Hero(){
         this.role = new ArrayList<>();
@@ -86,5 +96,84 @@ public class Hero implements Serializable {
 
     public void setAttributePrimary(String attributePrimary) {
         this.attributePrimary = attributePrimary;
+    }
+
+    public String getAttackCapabilities() {
+        return attackCapabilities;
+    }
+
+    public void setAttackCapabilities(String attackCapabilities) {
+        this.attackCapabilities = attackCapabilities;
+    }
+
+    public String getAttackCapability(){
+        if(this.attackCapabilities.equals("DOTA_UNIT_CAP_MELEE_ATTACK")){
+            return "Melee";
+        }else if(this.attackCapabilities.equals("DOTA_UNIT_CAP_RANGED_ATTACK")){
+            return "Ranged";
+        } else {
+            return "";
+        }
+    }
+
+    public String getBaseStrength(int level) {
+        return String.valueOf((int)(attributeBaseStrength + (level * attributeStrengthGain)));
+    }
+
+    public int getAttributeBaseStrength() {
+        return attributeBaseStrength;
+    }
+
+    public void setAttributeBaseStrength(int attributeBaseStrength) {
+        this.attributeBaseStrength = attributeBaseStrength;
+    }
+
+    public float getAttributeStrengthGain() {
+        return attributeStrengthGain;
+    }
+
+    public void setAttributeStrengthGain(float attributeStrengthGain) {
+        this.attributeStrengthGain = attributeStrengthGain;
+    }
+
+    public String getBaseInteligence(int level) {
+        return String.valueOf((int)(attributeBaseIntelligence + (level * attributeIntelligenceGain)));
+    }
+
+    public int getAttributeBaseIntelligence() {
+        return attributeBaseIntelligence;
+    }
+
+    public void setAttributeBaseIntelligence(int attributeBaseIntelligence) {
+        this.attributeBaseIntelligence = attributeBaseIntelligence;
+    }
+
+    public float getAttributeIntelligenceGain() {
+        return attributeIntelligenceGain;
+    }
+
+    public void setAttributeIntelligenceGain(float attributeIntelligenceGain) {
+        this.attributeIntelligenceGain = attributeIntelligenceGain;
+    }
+
+    public String getBaseAgility(int level) {
+        return String.valueOf((int)(attributeBaseAgility + (level * attributeAgilityGain)));
+    }
+
+
+    public int getAttributeBaseAgility() {
+        return attributeBaseAgility;
+    }
+
+    public void setAttributeBaseAgility(int attributeBaseAgility) {
+        this.attributeBaseAgility = attributeBaseAgility;
+    }
+
+    public float getAttributeAgilityGain() {
+        return attributeAgilityGain;
+    }
+
+    public void setAttributeAgilityGain(float attributeAgilityGain) {
+        this.attributeAgilityGain = attributeAgilityGain;
     }
 }
