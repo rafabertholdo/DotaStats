@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         heroes = new HashMap<Integer,Hero>();
 
         try {
-            String jsonAbilities = LoadData("abilitydata.json");
+            String jsonAbilities = LoadData("abilitydata-en.json");
             JSONObject abiltyReader = new JSONObject(jsonAbilities);
             abilityMap = abiltyReader.getJSONObject("abilitydata");
         } catch (JSONException e) {
