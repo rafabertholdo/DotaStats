@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">DotaStats</string>
-    <string name="steam_key">D694213C6F6E32058C2E37326AAF31FC</string>
+    <string name="steam_key">INSERT_YOUR_KEY_HERE</string>
+    <string name="dialog_message">Steam API rejected your key</string>
+    <string name="dialog_title">Steam API</string>
 </resources>

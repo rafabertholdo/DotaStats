@@ -1,8 +1,10 @@
 package com.rafabertholdo.dotastats;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -38,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private SearchView mSearchView;
     private SharedPreferences mPrefs;
     public static JSONObject abilityMap;
+    private MainActivity self;
 
 
     public static Map<Integer, Hero> heroes;
@@ -50,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         mSearchView = (SearchView) findViewById(R.id.mySearch);
+        self = this;
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -259,24 +263,25 @@ public class MainActivity extends AppCompatActivity {
     public void AcessaHerois(){
 
         RequestTask task = new RequestTask();
-        task.execute("https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/?key=D694213C6F6E32058C2E37326AAF31FC&language=pt_br");
+        task.execute(String.format("https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/?key=%s&language=en_us",getResources().getString(R.string.steam_key)));
         task.delegate = new IApiAccessResponse() {
             @Override
             public void postResult(String asyncresult) {
                 try
                 {
-                    JSONObject reader = new JSONObject(asyncresult);
-                    //Get the instance of JSONArray that contains JSONObjects
-                    JSONArray jsonArray = reader.getJSONObject("result").optJSONArray("heroes");
+                    if(asyncresult != null && !asyncresult.trim().equals("")){
+                        JSONObject reader = new JSONObject(asyncresult);
+                        //Get the instance of JSONArray that contains JSONObjects
+                        JSONArray jsonArray = reader.getJSONObject("result").optJSONArray("heroes");
 
-                    //Iterate the jsonArray and print the info of JSONObjects
-                    for(int i=0; i < jsonArray.length(); i++) {
-                        JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        Hero hero = heroes.get(jsonObject.getInt("id"));
-                        if(hero.getName().equals(jsonObject.getString("name"))){
-                            hero.setLocalizedName(jsonObject.getString("localized_name"));
+                        //Iterate the jsonArray and print the info of JSONObjects
+                        for(int i=0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            Hero hero = heroes.get(jsonObject.getInt("id"));
+                            if(hero.getName().equals(jsonObject.getString("name"))){
+                                hero.setLocalizedName(jsonObject.getString("localized_name"));
+                            }
                         }
-                    }
 
                     /*
                     SharedPreferences.Editor prefsEditor = mPrefs.edit();
@@ -285,7 +290,20 @@ public class MainActivity extends AppCompatActivity {
                     prefsEditor.putString("heroes", json);
                     prefsEditor.commit();
                     */
-                    setAdapter();
+                        setAdapter();
+                    }else{
+
+                        new AlertDialog.Builder(self)
+                                .setTitle(getResources().getString(R.string.dialog_title))
+                                .setMessage(getResources().getString(R.string.dialog_message))
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // continue with delete
+                                    }
+                                })
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .show();
+                    }
                 }catch (JSONException e){
                     Log.e("Json", e.getMessage());
                 }

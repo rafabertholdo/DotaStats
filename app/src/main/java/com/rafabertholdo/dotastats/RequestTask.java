@@ -34,17 +34,16 @@ class RequestTask extends AsyncTask<String, String, String> {
                 char current = (char) data;
                 data = isw.read();
                 builder.append(current);
-                //System.out.print(current);
             }
             return builder.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
         }
-        return null;
+        return "";
     }
 
     @Override
